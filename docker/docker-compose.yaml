@@ -1,0 +1,73 @@
+version: '3.4'
+
+networks:
+  proxynetwork:
+    external:
+      name: proxynetwork
+  premierleaguedbnetwork:
+    driver: bridge
+
+services:
+
+  premierleague_web:
+    container_name: premierleague_web
+    image: premierleague/master
+    command: [ "web" ]
+    volumes:
+      - /Users/knyazev/docker/src/premierleague:/var/www:cached
+    depends_on:
+      - db
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-'false'}
+      APP_KEY: ${APP_KEY:-base64:YCDn9otw6Hk8dRx9J7dqYqobutRqp1q64VHSVI3CNuc=}
+      DB_HOST: db
+      DB_DATABASE: dbname
+      DB_USERNAME: dbuser
+      DB_PASSWORD: secret
+      VIRTUAL_HOST: web.premierleague.${TLD:-localhost}
+    networks:
+      - premierleaguedbnetwork
+      - proxynetwork
+    external_links:
+      - proxy:web.premierleague.${TLD:-localhost}
+
+  premierleague_api:
+    container_name: premierleague_api
+    image: premierleague/master
+    command: ["api"]
+    volumes:
+      - /Users/knyazev/docker/src/premierleague:/var/www:cached
+    depends_on:
+      - db
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-'false'}
+      APP_KEY: ${APP_KEY:-base64:YCDn9otw6Hk8dRx9J7dqYqobutRqp1q64VHSVI3CNuc=}
+      DB_HOST: db
+      DB_DATABASE: dbname
+      DB_USERNAME: dbuser
+      DB_PASSWORD: secret
+      VIRTUAL_HOST: api.premierleague.${TLD:-localhost}
+    networks:
+      - premierleaguedbnetwork
+      - proxynetwork
+    external_links:
+      - proxy:api.premierleague.${TLD:-localhost}
+
+  db:
+    container_name: premierleague_db
+    image: mysql/mysql-server:5.7
+    environment:
+      MYSQL_DATABASE: dbname
+      MYSQL_USER: dbuser
+      MYSQL_PASSWORD: secret
+    volumes:
+      - db-volume:/var/lib/mysql
+    networks:
+      - premierleaguedbnetwork
+    ports:
+      - "3306:3306"
+
+volumes:
+  db-volume:
