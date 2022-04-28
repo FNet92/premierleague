@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use \App\Http\Controllers\TeamController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,5 +15,18 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('teams');
 });
+
+
+Route::controller(TeamController::class)->group(function () {
+    Route::get('/teams', 'index')->name('teams');
+});
+
+
+Route::controller(\App\Http\Controllers\GameController::class)->group(function () {
+    Route::get('/games', 'index')->name('games');
+    Route::post('/games/generate', 'generate')->name('games.generate');
+    Route::post('/games/generate_results', 'generateResults')->name('games.generate_results');
+});
+
